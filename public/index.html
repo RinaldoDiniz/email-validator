@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Email Hunter SMTP Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0b0d10;--bg2:#111419;--bg3:#181c23;--bg4:#1e242d;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde2ea;--text2:#7a8494;--text3:#424d5c;
+  --green:#2ecc71;--gdim:rgba(46,204,113,.13);
+  --amber:#f39c12;--adim:rgba(243,156,18,.12);
+  --red:#e74c3c;--rdim:rgba(231,76,60,.10);
+  --blue:#3498db;--bdim:rgba(52,152,219,.10);
+  --mono:'IBM Plex Mono',monospace;--sans:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+
+/* HEADER */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo{width:32px;height:32px;background:var(--gdim);border:1px solid rgba(46,204,113,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-txt{font-size:16px;font-weight:700;letter-spacing:-.4px}.logo-txt b{color:var(--green)}
+.hbadge{font-size:10px;font-family:var(--mono);background:var(--gdim);color:var(--green);border:1px solid rgba(46,204,113,.2);border-radius:4px;padding:3px 8px;margin-left:4px}
+.hmeta{margin-left:auto;display:flex;align-items:center;gap:12px}
+.hstat{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.hstat b{color:var(--text2)}
+
+/* MAIN */
+.main{max-width:1160px;margin:0 auto;padding:28px 20px}
+
+/* UPLOAD */
+.upload{border:1.5px dashed var(--border2);border-radius:14px;padding:34px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2);margin-bottom:22px;position:relative;overflow:hidden}
+.upload::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(46,204,113,.03) 0%,transparent 60%);pointer-events:none}
+.upload:hover,.upload.drag{border-color:var(--green);background:var(--gdim)}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uicon{font-size:28px;margin-bottom:10px}
+.utitle{font-size:15px;font-weight:600;margin-bottom:4px}
+.usub{font-size:12px;color:var(--text2);font-family:var(--mono)}
+.ufmts{margin-top:10px;display:flex;gap:6px;justify-content:center}
+.ufmt{font-size:10px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--text3)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 15px}
+.slbl{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.sval{font-size:22px;font-weight:700}
+.cv{color:var(--green)}.ca{color:var(--amber)}.cr{color:var(--red)}.cb{color:var(--blue)}.cw{color:var(--text2)}
+
+/* PROGRESS */
+.progwrap{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.progtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.proglbl{font-size:12px;font-family:var(--mono);color:var(--text2)}
+.progpct{font-size:13px;font-family:var(--mono);font-weight:500;color:var(--green)}
+.progtrack{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progfill{height:100%;background:var(--green);border-radius:3px;width:0;transition:width .4s}
+.progsteps{display:flex;gap:18px;margin-top:10px;flex-wrap:wrap}
+.progstep{font-size:11px;font-family:var(--mono);color:var(--text3);display:flex;align-items:center;gap:5px}
+
+/* CONTROLS */
+.controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn{font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--bg4)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:var(--green);color:#0b0d10;border-color:var(--green);font-weight:700}.btn.primary:hover{background:#3ae080}
+.btn.stop{background:var(--rdim);color:var(--red);border-color:rgba(231,76,60,.3)}.btn.stop:hover{background:rgba(231,76,60,.2)}
+.btn.exp{color:var(--blue);border-color:rgba(52,152,219,.3)}.btn.exp:hover{background:var(--bdim)}
+.srch{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 13px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+.srch:focus{border-color:var(--green)}.srch::placeholder{color:var(--text3)}
+
+/* TABLE */
+.twrap{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg3);border-bottom:1px solid var(--border)}
+th{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:10px 14px;text-align:left;font-weight:500;white-space:nowrap}
+td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.row-valid td{border-left:2px solid rgba(46,204,113,.3)}
+tr.row-risky td{border-left:2px solid rgba(243,156,18,.3)}
+tr.row-invalid td{border-left:2px solid rgba(231,76,60,.3)}
+tr:hover td{background:rgba(255,255,255,.015)}
+
+.nc .n{font-weight:600;font-size:13px}.nc .r{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:1px}
+.dom{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--text2)}
+.em{font-family:var(--mono);font-size:12px}.em .at{color:var(--green)}
+.cfw{display:flex;align-items:center;gap:7px}
+.cfb{width:42px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.cff{height:100%;border-radius:2px}
+.cfp{font-family:var(--mono);font-size:11px}
+
+/* BADGES */
+.sb{font-size:10px;font-family:var(--mono);font-weight:500;padding:3px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.sp{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.sc{background:var(--adim);color:var(--amber);border:1px solid rgba(243,156,18,.2)}
+.sv{background:var(--gdim);color:var(--green);border:1px solid rgba(46,204,113,.2)}
+.sr{background:var(--adim);color:var(--amber);border:1px solid rgba(243,156,18,.2)}
+.si{background:var(--rdim);color:var(--red);border:1px solid rgba(231,76,60,.2)}
+
+/* SUB-STATUS */
+.ss{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:2px}
+
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dg{background:var(--green)}.da{background:var(--amber)}.dr{background:var(--red)}.dx{background:var(--text3)}
+.pulse{animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+.irow{display:flex;gap:5px}
+.ib{background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text2);cursor:pointer;font-size:11px;padding:4px 8px;transition:all .15s}
+.ib:hover{background:var(--bg4);color:var(--text)}
+
+/* MX INFO */
+.mx-info{font-size:10px;font-family:var(--mono);color:var(--text3)}
+
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.mbg.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;width:660px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:24px;transform:translateY(8px);transition:transform .2s}
+.mbg.open .modal{transform:translateY(0)}
+.mhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.mtitle{font-size:16px;font-weight:700}.msub{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:3px}
+.mclose{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:5px}.mclose:hover{color:var(--text);background:var(--bg3)}
+.vrow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);margin-bottom:6px;transition:border-color .15s}
+.vrow:hover{border-color:var(--border2)}.vrow.top{border-color:rgba(46,204,113,.3)}
+.vr-em{font-family:var(--mono);font-size:12px;flex:1}
+.vr-pat{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:110px}
+.zb-box{margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.zb-ttl{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.zb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.zb-k{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.zb-v{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--text)}
+.log-box{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;max-height:160px;overflow-y:auto}
+.log-line{font-size:11px;font-family:var(--mono);color:var(--text3);line-height:1.7}
+.log-line.ok{color:var(--green)}.log-line.err{color:var(--red)}.log-line.warn{color:var(--amber)}
+
+/* EXPORT BAR */
+.expbar{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* EMPTY */
+.empty{text-align:center;padding:52px 20px}
+.eicon{font-size:36px;margin-bottom:12px;opacity:.3}
+.ettl{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.esub{font-size:12px;color:var(--text3);font-family:var(--mono)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border2);border-radius:9px;padding:8px 16px;font-size:12px;font-family:var(--mono);color:var(--text);opacity:0;transition:opacity .2s;white-space:nowrap;z-index:999;pointer-events:none}
+.toast.show{opacity:1}
+
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.main{padding:14px 10px}header{padding:11px 14px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡</div>
+  <div class="logo-txt">Email<b>Hunter</b> <span class="hbadge">SMTP</span></div>
+  <div class="hmeta">
+    <div class="hstat" id="h-mode">● <b id="h-mode-txt">conectando...</b></div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- UPLOAD -->
+  <div class="upload" id="dropzone">
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" />
+    <div class="uicon">📂</div>
+    <div class="utitle">Arraste o arquivo ou clique para selecionar</div>
+    <div class="usub">Colunas: Nome · Cargo · Empresa · Domínio</div>
+    <div class="ufmts">
+      <span class="ufmt">.xlsx</span><span class="ufmt">.xls</span>
+      <span class="ufmt">.csv</span><span class="ufmt">.txt</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="slbl">Total</div><div class="sval cb" id="s-total">0</div></div>
+    <div class="stat"><div class="slbl">Válidos</div><div class="sval cv" id="s-valid">0</div></div>
+    <div class="stat"><div class="slbl">Arriscados</div><div class="sval ca" id="s-risky">0</div></div>
+    <div class="stat"><div class="slbl">Inválidos</div><div class="sval cr" id="s-invalid">0</div></div>
+    <div class="stat"><div class="slbl">Pendentes</div><div class="sval cw" id="s-pending">0</div></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progwrap" id="progwrap" style="display:none">
+    <div class="progtop">
+      <span class="proglbl" id="prog-lbl">Validando via SMTP...</span>
+      <span class="progpct" id="prog-pct">0%</span>
+    </div>
+    <div class="progtrack"><div class="progfill" id="prog-fill"></div></div>
+    <div class="progsteps">
+      <span class="progstep"><span class="dot dg"></span> MX lookup</span>
+      <span class="progstep"><span class="dot dg"></span> Catch-all check</span>
+      <span class="progstep"><span class="dot dg"></span> SMTP ping RCPT TO</span>
+      <span class="progstep" style="margin-left:auto;color:var(--green)" id="prog-speed"></span>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls" id="controls" style="display:none">
+    <button class="btn primary" id="btn-val" onclick="startValidation()">⚡ Validar SMTP</button>
+    <button class="btn stop" id="btn-stop" onclick="stopValidation()" style="display:none">⏹ Parar</button>
+    <button class="btn exp" onclick="exportCSV('all')">⬇ Exportar</button>
+    <button class="btn" onclick="clearAll()" style="color:var(--red)">✕ Limpar</button>
+    <input class="srch" id="srch" placeholder="Buscar..." oninput="renderTable()" />
+  </div>
+
+  <!-- TABLE -->
+  <div class="twrap" id="twrap">
+    <div class="empty" id="empty">
+      <div class="eicon">📋</div>
+      <div class="ettl">Nenhum contato carregado</div>
+      <div class="esub">Faça upload de um arquivo para começar</div>
+    </div>
+    <table id="main-table" style="display:none">
+      <thead><tr>
+        <th>#</th><th>Contato</th><th>Domínio / MX</th>
+        <th>E-mail principal</th><th>Conf.</th>
+        <th>Status SMTP</th><th>Sub-status</th><th>Ações</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="expbar" id="expbar" style="display:none">
+    <button class="btn exp" onclick="exportCSV('all')">📄 Todos</button>
+    <button class="btn exp" onclick="exportCSV('valid')">✅ Só válidos</button>
+    <button class="btn exp" onclick="exportCSV('safe')">⭐ Válidos + Arriscados</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="mbg" id="modal-bg" onclick="closeMod(event)">
+  <div class="modal">
+    <div class="mhdr">
+      <div><div class="mtitle" id="mod-title"></div><div class="msub" id="mod-sub"></div></div>
+      <button class="mclose" onclick="closeMod()">✕</button>
+    </div>
+    <div id="mod-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const API = "";
+let contacts = [], validating = false, sseSource = null, startTime = 0;
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch(API + "/api/health");
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById("h-mode-txt").textContent = "SMTP próprio · ilimitado · gratuito";
+      document.getElementById("h-mode").style.color = "var(--green)";
+    }
+  } catch {
+    document.getElementById("h-mode-txt").textContent = "servidor offline";
+    document.getElementById("h-mode").style.color = "var(--red)";
+  }
+}
+
+// ── Upload ────────────────────────────────────────────────────────
+const dz = document.getElementById("dropzone");
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag"));
+dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag"); if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]); });
+document.getElementById("file-input").addEventListener("change", e => { if (e.target.files[0]) uploadFile(e.target.files[0]); });
+
+async function uploadFile(file) {
+  toast("⏳ Processando...");
+  const fd = new FormData();
+  fd.append("file", file);
+  try {
+    const r = await fetch(API + "/api/upload", { method: "POST", body: fd });
+    const d = await r.json();
+    if (d.error) { toast("❌ " + d.error); return; }
+    contacts = d.contacts.map(c => ({ ...c, status: "pending", smtpData: null }));
+    renderAll();
+    toast(`✅ ${contacts.length} contatos carregados`);
+  } catch { toast("❌ Erro ao enviar. Servidor offline?"); }
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function renderAll() {
+  ["stats","controls","expbar"].forEach(id => document.getElementById(id).style.display = id === "stats" ? "grid" : "flex");
+  document.getElementById("empty").style.display = "none";
+  document.getElementById("main-table").style.display = "table";
+  updateStats(); renderTable();
+}
+
+function updateStats() {
+  document.getElementById("s-total").textContent   = contacts.length;
+  document.getElementById("s-valid").textContent   = contacts.filter(c => c.status === "valid").length;
+  document.getElementById("s-risky").textContent   = contacts.filter(c => c.status === "risky").length;
+  document.getElementById("s-invalid").textContent = contacts.filter(c => c.status === "invalid").length;
+  document.getElementById("s-pending").textContent = contacts.filter(c => c.status === "pending").length;
+}
+
+function cc(v) { return v >= 85 ? "var(--green)" : v >= 65 ? "var(--amber)" : "var(--red)"; }
+
+function fmtE(e) {
+  const [u,d] = e.split("@");
+  return `${u}<span class="at">@</span>${d}`;
+}
+
+function sbadge(s) {
+  const m = {
+    pending:  `<span class="sb sp"><span class="dot dx"></span>Pendente</span>`,
+    checking: `<span class="sb sc"><span class="dot da pulse"></span>Verificando</span>`,
+    valid:    `<span class="sb sv"><span class="dot dg"></span>Válido</span>`,
+    risky:    `<span class="sb sr"><span class="dot da"></span>Arriscado</span>`,
+    invalid:  `<span class="sb si"><span class="dot dr"></span>Inválido</span>`,
+  };
+  return m[s] || m.pending;
+}
+
+function subStatusLabel(ss) {
+  const map = {
+    smtp_ok:                 "✓ SMTP OK",
+    mailbox_not_found:       "✗ Caixa inexistente",
+    catch_all:               "⚠ Catch-all",
+    no_mx_record:            "✗ Sem MX",
+    invalid_syntax:          "✗ Sintaxe inválida",
+    free_provider:           "ℹ Provedor gratuito",
+    timeout:                 "⏱ Timeout",
+    temporarily_unavailable: "⏳ Temp. indisponível",
+    connection_error:        "✗ Erro de conexão",
+    server_reject:           "✗ Servidor rejeitou",
+    spam_block:              "⚠ Bloqueio spam",
+  };
+  return map[ss] || (ss || "—");
+}
+
+function renderTable() {
+  const q = (document.getElementById("srch").value || "")
+    .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const list = q
+    ? contacts.filter(c => [c.name,c.empresa,c.domain].some(v =>
+        v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").includes(q)))
+    : contacts;
+
+  document.getElementById("tbody").innerHTML = list.map((c, i) => {
+    const top = c.variants[0];
+    const sd  = c.smtpData || {};
+    const rowClass = c.status !== "pending" && c.status !== "checking" ? `row-${c.status}` : "";
+    return `<tr class="${rowClass}">
+      <td style="color:var(--text3);font-family:var(--mono);font-size:10px">${i+1}</td>
+      <td><div class="nc"><div class="n">${c.name}</div><div class="r">${c.cargo}${c.empresa?" · "+c.empresa:""}</div></div></td>
+      <td>
+        <span class="dom">${c.domain}</span>
+        ${sd.mxHost ? `<div class="mx-info">MX: ${sd.mxHost}</div>` : ""}
+      </td>
+      <td><span class="em">${fmtE(top.email)}</span></td>
+      <td><div class="cfw"><div class="cfb"><div class="cff" style="width:${top.conf}%;background:${cc(top.conf)}"></div></div><span class="cfp" style="color:${cc(top.conf)}">${top.conf}%</span></div></td>
+      <td id="st-${contacts.indexOf(c)}">${sbadge(c.status)}</td>
+      <td><span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${subStatusLabel(sd.subStatus)}</span></td>
+      <td><div class="irow">
+        <button class="ib" onclick="copyT('${top.email}')" title="Copiar">📋</button>
+        <button class="ib" onclick="openMod(${contacts.indexOf(c)})" title="Detalhes">🔍</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+// ── Validation via SSE ────────────────────────────────────────────
+function startValidation() {
+  if (validating) return;
+  validating = true;
+  startTime = Date.now();
+  document.getElementById("btn-val").disabled = true;
+  document.getElementById("btn-stop").style.display = "flex";
+  document.getElementById("progwrap").style.display = "block";
+
+  // Reset status
+  contacts.forEach(c => { c.status = "pending"; c.smtpData = null; });
+  renderTable(); updateStats();
+
+  const emails = contacts.map(c => c.variants[0].email).join(",");
+  const url = API + "/api/validate-stream?emails=" + encodeURIComponent(emails);
+
+  sseSource = new EventSource(url);
+
+  sseSource.addEventListener("result", e => {
+    const d = JSON.parse(e.data);
+    // Encontra o contato pelo e-mail
+    const c = contacts.find(c => c.variants[0].email === d.email);
+    if (c) {
+      c.status   = d.status;
+      c.smtpData = d;
+    }
+    updateStats();
+    renderTable();
+  });
+
+  sseSource.addEventListener("progress", e => {
+    const d = JSON.parse(e.data);
+    document.getElementById("prog-fill").style.width = d.pct + "%";
+    document.getElementById("prog-pct").textContent  = d.pct + "%";
+    document.getElementById("prog-lbl").textContent  = `Validando ${d.done} / ${d.total}`;
+    // Velocidade
+    const elapsed = (Date.now() - startTime) / 1000;
+    const speed   = Math.round(d.done / elapsed * 60);
+    document.getElementById("prog-speed").textContent = `~${speed} emails/min`;
+  });
+
+  sseSource.addEventListener("done", e => {
+    const d = JSON.parse(e.data);
+    finishValidation();
+    toast(`✅ Pronto! ${d.summary.valid} válidos · ${d.summary.risky} arriscados · ${d.summary.invalid} inválidos`);
+  });
+
+  sseSource.onerror = () => {
+    if (validating) finishValidation();
+  };
+}
+
+function stopValidation() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  finishValidation();
+  toast("⏹ Validação interrompida");
+}
+
+function finishValidation() {
+  validating = false;
+  document.getElementById("btn-val").disabled = false;
+  document.getElementById("btn-stop").style.display = "none";
+  document.getElementById("progwrap").style.display = "none";
+  document.getElementById("prog-fill").style.width  = "0%";
+  updateStats(); renderTable();
+}
+
+// ── Modal ──────────────────────────────────────────────────────────
+function openMod(idx) {
+  const c  = contacts[idx];
+  const sd = c.smtpData || {};
+  document.getElementById("mod-title").textContent = c.name;
+  document.getElementById("mod-sub").textContent   = `${c.cargo} · ${c.empresa} · ${c.domain}`;
+
+  const zbHtml = c.smtpData ? `
+    <div class="zb-box">
+      <div class="zb-ttl">Resultado SMTP</div>
+      <div class="zb-row"><span class="zb-k">Status</span>${sbadge(sd.status)}</div>
+      <div class="zb-row"><span class="zb-k">Sub-status</span><span class="zb-v">${subStatusLabel(sd.subStatus)}</span></div>
+      <div class="zb-row"><span class="zb-k">MX Host</span><span class="zb-v">${sd.mxHost || "—"}</span></div>
+      <div class="zb-row"><span class="zb-k">Catch-all</span><span class="zb-v">${sd.catchAll ? "Sim ⚠" : "Não"}</span></div>
+      <div class="zb-row"><span class="zb-k">MX Records</span><span class="zb-v" style="font-size:10px">${(sd.mxRecords || []).join(", ") || "—"}</span></div>
+      ${sd.log && sd.log.length ? `
+        <div style="margin-top:10px;font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:6px">LOG SMTP</div>
+        <div class="log-box">${sd.log.map(l => {
+          const cls = l.startsWith("←") ? "ok" : l.includes("✗") || l.includes("error") ? "err" : l.includes("⚠") ? "warn" : "";
+          return `<div class="log-line ${cls}">${l}</div>`;
+        }).join("")}</div>` : ""}
+    </div>` : "";
+
+  document.getElementById("mod-body").innerHTML =
+    c.variants.map((v, j) => `
+      <div class="vrow ${j===0?"top":""}">
+        <span class="vr-pat">${v.pattern}</span>
+        <span class="vr-em">${fmtE(v.email)}</span>
+        <div class="cfw" style="min-width:65px"><div class="cfb"><div class="cff" style="width:${v.conf}%;background:${cc(v.conf)}"></div></div><span class="cfp" style="color:${cc(v.conf)};font-size:10px">${v.conf}%</span></div>
+        <button class="ib" onclick="copyT('${v.email}')">📋</button>
+      </div>`).join("") + zbHtml;
+
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeMod(e) {
+  if (!e || e.target === document.getElementById("modal-bg"))
+    document.getElementById("modal-bg").classList.remove("open");
+}
+
+// ── Export ────────────────────────────────────────────────────────
+function exportCSV(mode) {
+  let data = contacts;
+  if (mode === "valid") data = contacts.filter(c => c.status === "valid");
+  if (mode === "safe")  data = contacts.filter(c => ["valid","risky"].includes(c.status));
+  if (!data.length) { toast("Nada para exportar."); return; }
+
+  const rows = [["Nome","Cargo","Empresa","Domínio","Email Principal","Confiança (%)","Status","Sub-status","MX Host","Catch-all","Todas Variações"]];
+  data.forEach(c => {
+    const top = c.variants[0];
+    const sd  = c.smtpData || {};
+    rows.push([c.name, c.cargo, c.empresa, c.domain, top.email, top.conf,
+      c.status, sd.subStatus||"", sd.mxHost||"", sd.catchAll?"sim":"não",
+      c.variants.map(v => v.email).join(" | ")
+    ]);
+  });
+
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a    = Object.assign(document.createElement("a"), {
+    href: URL.createObjectURL(new Blob(["\uFEFF"+csv], { type: "text/csv;charset=utf-8;" })),
+    download: `email-hunter-${mode}-${Date.now()}.csv`
+  });
+  a.click();
+  toast("📄 CSV exportado!");
+}
+
+function clearAll() {
+  contacts = [];
+  ["stats","controls","expbar"].forEach(id => document.getElementById(id).style.display = "none");
+  document.getElementById("main-table").style.display = "none";
+  document.getElementById("progwrap").style.display   = "none";
+  document.getElementById("empty").style.display      = "block";
+  document.getElementById("file-input").value = "";
+  toast("Limpo!");
+}
+
+function copyT(txt) {
+  navigator.clipboard.writeText(txt).catch(() => {
+    const t = Object.assign(document.createElement("textarea"),{value:txt});
+    document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t);
+  });
+  toast("📋 " + txt);
+}
+
+let _tt;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove("show"), 2800);
+}
+
+init();
+</script>
+</body>
+</html>
